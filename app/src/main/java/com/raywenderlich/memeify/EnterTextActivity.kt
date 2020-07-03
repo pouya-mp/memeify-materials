@@ -32,6 +32,7 @@ package com.raywenderlich.memeify
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
@@ -78,7 +79,7 @@ class EnterTextActivity : Activity(), View.OnClickListener {
   override fun onClick(v: View) {
     when (v.id) {
       R.id.writeTextToImageButton -> createMeme()
-      R.id.saveImageButton -> {}
+      R.id.saveImageButton -> askForPermissions()
       else -> println("No case satisfied")
     }
   }
@@ -189,6 +190,9 @@ class EnterTextActivity : Activity(), View.OnClickListener {
         } catch (e: IOException) {
           Toaster.show(this, R.string.save_image_failed)
         }
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+        mediaScanIntent.data = Uri.fromFile(imageFile)
+        sendBroadcast(mediaScanIntent)
 
         Toaster.show(this, R.string.save_image_succeeded)
       }
