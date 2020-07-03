@@ -59,11 +59,10 @@ class TakePictureActivity : Activity(), View.OnClickListener {
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.pictureImageview -> {
-                takePictureWithCamera()
-            }
-            R.id.enterTextButton -> {
-            }
+            R.id.pictureImageview -> takePictureWithCamera()
+
+            R.id.enterTextButton -> moveToNextScreen()
+
             else -> println("No case satisfied")
         }
     }
@@ -120,6 +119,19 @@ class TakePictureActivity : Activity(), View.OnClickListener {
         }
         lookingGoodTextView.visibility = View.VISIBLE
         pictureTaken = true
+    }
+
+    private fun moveToNextScreen() {
+        if (pictureTaken) {
+            val nextScreenIntent = Intent(this, EnterTextActivity::class.java).apply {
+                putExtra(IMAGE_URI_KEY, selectedPhotoPath)
+                putExtra(BITMAP_WIDTH, pictureImageview.width)
+                putExtra(BITMAP_HEIGHT, pictureImageview.height)
+            }
+            startActivity(nextScreenIntent)
+        } else {
+            Toaster.show(this, R.string.select_a_picture)
+        }
     }
 
 

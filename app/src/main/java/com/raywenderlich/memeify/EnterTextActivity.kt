@@ -62,11 +62,22 @@ class EnterTextActivity : Activity(), View.OnClickListener {
     saveImageButton.setOnClickListener(this)
 
     originalImage = true
+
+    pictureUri = intent.getParcelableExtra<Uri>(IMAGE_URI_KEY)
+    val bitmapWidth = intent.getIntExtra(BITMAP_WIDTH, 100)
+    val bitmapHeight = intent.getIntExtra(BITMAP_HEIGHT, 100)
+
+    pictureUri?.let {
+      val selectedImageBitmap = BitmapResizer.shrinkBitmap(this, it, bitmapWidth,
+              bitmapHeight)
+      selectedPictureImageview.setImageBitmap(selectedImageBitmap)
+    }
+
   }
 
   override fun onClick(v: View) {
     when (v.id) {
-      R.id.writeTextToImageButton -> {}
+      R.id.writeTextToImageButton -> createMeme()
       R.id.saveImageButton -> {}
       else -> println("No case satisfied")
     }
