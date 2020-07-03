@@ -42,57 +42,89 @@ import androidx.core.content.FileProvider.getUriForFile
 import kotlinx.android.synthetic.main.activity_take_picture.*
 import java.io.File
 
-class  TakePictureActivity : Activity(), View.OnClickListener {
-  
-  private var selectedPhotoPath: Uri? = null
+class TakePictureActivity : Activity(), View.OnClickListener {
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_take_picture)
+    private var selectedPhotoPath: Uri? = null
+    private var pictureTaken: Boolean = false
 
-    pictureImageview.setOnClickListener(this)
-    enterTextButton.setOnClickListener(this)
 
-  }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_take_picture)
 
-  override fun onClick(v: View) {
-    when (v.id) {
-      R.id.pictureImageview -> {}
-      R.id.enterTextButton -> {}
-      else -> println("No case satisfied")
+        pictureImageview.setOnClickListener(this)
+        enterTextButton.setOnClickListener(this)
+
     }
-  }
 
-  private fun takePictureWithCamera() {
-    // 1
-    val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
-    // 2
-    val imagePath = File(filesDir, "images")
-    val newFile = File(imagePath, "default_image.jpg")
-    if (newFile.exists()) {
-      newFile.delete()
-    } else {
-      newFile.parentFile.mkdirs()
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.pictureImageview -> {
+                takePictureWithCamera()
+            }
+            R.id.enterTextButton -> {
+            }
+            else -> println("No case satisfied")
+        }
     }
-    selectedPhotoPath = getUriForFile(this, BuildConfig.APPLICATION_ID +
-            ".fileprovider", newFile)
 
-    // 3
-    captureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-            selectedPhotoPath)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      captureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-    } else {
-      val clip = ClipData.newUri(contentResolver, "A photo", selectedPhotoPath)
-      captureIntent.clipData = clip
-      captureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    private fun takePictureWithCamera() {
+        // 1
+        val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        // 2
+        val imagePath = File(filesDir, "images")
+        val newFile = File(imagePath, "default_image.jpg")
+        if (newFile.exists()) {
+            newFile.delete()
+        } else {
+            newFile.parentFile.mkdirs()
+        }
+        selectedPhotoPath = getUriForFile(this, BuildConfig.APPLICATION_ID +
+                ".fileprovider", newFile)
+
+        // 3
+        captureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                selectedPhotoPath)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            captureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        } else {
+            val clip = ClipData.newUri(contentResolver, "A photo", selectedPhotoPath)
+            captureIntent.clipData = clip
+            captureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
+
+        startActivityForResult(captureIntent, TAKE_PHOTO_REQUEST_CODE)
     }
-  }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == TAKE_PHOTO_REQUEST_CODE
+                && resultCode == RESULT_OK) {
+            setImageViewWithImage()
+        }
+
+    }
+
+    private fun setImageViewWithImage() {
+        val photoPath: Uri = selectedPhotoPath ?: return
+        pictureImageview.post {
+            val pictureBitmap = BitmapResizer.shrinkBitmap(
+                    this@TakePictureActivity,
+                    photoPath,
+                    pictureImageview.width,
+                    pictureImageview.height
+            )
+            pictureImageview.setImageBitmap(pictureBitmap)
+        }
+        lookingGoodTextView.visibility = View.VISIBLE
+        pictureTaken = true
+    }
 
 
-  companion object {
-    private const val MIME_TYPE_IMAGE = "image/"
-    private const val TAKE_PHOTO_REQUEST_CODE = 1
-  }
+    companion object {
+        private const val MIME_TYPE_IMAGE = "image/"
+        private const val TAKE_PHOTO_REQUEST_CODE = 1
+    }
 }
